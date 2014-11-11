@@ -1,3 +1,7 @@
+
+from uuid import UUID
+
+
 class Registrar(object):
     ''' The singleton registrar of the system '''
     
@@ -19,12 +23,28 @@ class Registrar(object):
 
         if self.class_objects.has_key(clsid):
             raise Exception('Class object already registered: %s' % clsid)
+
         
         self.class_objects[clsid] = instance
-        print "* Added class object for CLSID: %s" % clsid
+        print "* Added class object for CLSID: %s (%s)" % (clsid, type(clsid))
 
     def CoGetClassObject(self, clsid, iid):
-        if not self.class_objects.has_key(clsid):
-            raise Exception('No class object registered for: %s' % clsid)
+        ''' Return class object for a CLSID '''
 
-        return self.class_objects[clsid].iunknown.QueryInterface(iid)
+        use_clsid = clsid
+        if isinstance(clsid, str):
+            use_clsid = UUID('{%s}' % clsid)
+
+        if not self.class_objects.has_key(use_clsid):
+            raise Exception('No class object registered for: %s' % use_clsid)
+
+        return self.class_objects[use_clsid].QueryInterface(iid)
+
+    def get_registered_clsid(self):
+        ''' Returns a list of registered CLSIDs '''
+    
+        val = []
+        for obj in self.class_objects:
+            val.append((str(obj), self.class_objects[obj]))
+
+            return val
