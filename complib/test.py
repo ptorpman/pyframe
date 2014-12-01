@@ -13,6 +13,16 @@ from interfaces.iclassfactory import IClassFactory
 
 
 class TestFactory(ComponentBase, IClassFactory):
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(TestFactory, cls).__new__(cls, *args, **kwargs)
+            return cls._instance
+
+        return cls._instance
+
     def __init__(self):
         super(TestFactory, self).__init__('TestFactory', 
                                           [IClassFactory.IID_IClassFactory()])
@@ -42,6 +52,8 @@ class ITest(IUnknown):
 
 class Test(ComponentBase, ITest):
 
+    ProgID = 'test.Test.1'
+
     @classmethod
     def CLSID_Test(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e72}')
 
@@ -62,4 +74,4 @@ def load_this():
 
     print 'DEBUG: Loading file... %s' % __file__
     from system.registrar import Registrar
-    Registrar().CoRegisterClassObject(Test.CLSID_Test(), TestFactory())
+    Registrar().CoRegisterClassObject(Test.CLSID_Test(), Test.ProgID, TestFactory())

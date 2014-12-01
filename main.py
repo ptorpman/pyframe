@@ -22,6 +22,6 @@ while True:
     try:
         CommandHandler().handle_command(line)
     except Exception as exc:
-        print 'ERROR: %s' % exc.message
-
+        # Execute the command in the shell
+        raise
     
