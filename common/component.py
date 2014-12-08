@@ -6,7 +6,7 @@ from common.exceptions    import TooManyReleaseException
 class ComponentBase(IUnknown):
     ''' Base class for components in PyFrame ''' 
     def __init__(self, name, supported_iids):
-        self._name           = name
+        self.name           = name
         self._interfaces     = {}
         
         self._interfaces[IUnknown.IID_IUnknown()] = 0
@@ -16,7 +16,7 @@ class ComponentBase(IUnknown):
 
     def __str__(self):
         ''' String representation of component '''
-        return self._name
+        return self.name
 
 
     #-------------------------------------------------------------------------
@@ -37,7 +37,7 @@ class ComponentBase(IUnknown):
             raise NoInterfaceException('Interface %s not supported' % iid)
 
         self._interfaces[iid] = self._interfaces[iid] + 1
-        print "AddRef(). %s: %d" % (iid, self._interfaces[iid])
+        print "AddRef().%s %s: %d" % (self.name, iid, self._interfaces[iid])
 
     def Release(self, iid): 
         ''' Remove reference from interface '''
@@ -51,7 +51,7 @@ class ComponentBase(IUnknown):
 
         if  set(self._interfaces.values()) == set([0]):
             print "Release(): No refs left. Deleting..."
-            raise NoReferencesException('%s: No references left.' % self._name)
+            raise NoReferencesException('%s: No references left.' % self.name)
         else:
             print "Release() %s: %s" % (iid, self._interfaces[iid])
 

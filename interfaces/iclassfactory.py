@@ -15,7 +15,7 @@ class IClassFactory(IUnknown):
         self._parent = parent
 
     @abstractmethod
-    def CreateInstance(self, iid): pass
+    def CreateInstance(self, iid, name): pass
 
     @abstractmethod
     def LockServer(self, block): pass

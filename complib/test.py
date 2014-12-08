@@ -1,5 +1,3 @@
-
-
 #--------------------------------------------------------------------
 # COMPONENT CLASSES 
 #--------------------------------------------------------------------
@@ -19,6 +17,7 @@ class TestFactory(ComponentBase, IClassFactory):
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(TestFactory, cls).__new__(cls, *args, **kwargs)
+            cls._instance.name = "TestFactory"
             return cls._instance
 
         return cls._instance
@@ -28,8 +27,9 @@ class TestFactory(ComponentBase, IClassFactory):
                                           [IClassFactory.IID_IClassFactory()])
 
     # IClassFactory methods
-    def CreateInstance(self, iid): 
-        return Test(iid)
+    def CreateInstance(self, iid, name): 
+        # FIXME: Check IID!
+        return Test(name)
 
     def LockServer(self, block): 
         pass
@@ -58,8 +58,7 @@ class Test(ComponentBase, ITest):
     def CLSID_Test(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e72}')
 
     def __init__(self, name):
-        super(Test, self).__init__(name, 
-                                   [ITest.IID_ITest()])
+        super(Test, self).__init__(name, [ITest.IID_ITest()])
     def test_me(self):
         print '%s: Test me!' % self
 

@@ -1,6 +1,5 @@
-
 from uuid import UUID
-
+from interfaces.iunknown import IUnknown
 
 class Registrar(object):
     ''' The singleton registrar of the system '''
@@ -12,6 +11,8 @@ class Registrar(object):
             cls._instance = super(Registrar, cls).__new__(cls, *args, **kwargs)
             cls._instance.class_objects = {}
             cls._instance.prog_ids = {}
+            cls._comp_instances = {}
+
             return cls._instance
 
         return cls._instance
@@ -56,6 +57,12 @@ class Registrar(object):
         for clsid in val:
             print '%-45s %-32s %s' % (clsid[0], self.prog_ids[UUID('{%s}' % clsid[0])], clsid[1])
 
+    def print_instances(self):
+        ''' Print all created instances '''
+        for comp in sorted(self._comp_instances.keys()):
+            print "%-32s - %s" % (comp, self._comp_instances[comp][0])
+
+
     def CLSIDFromProgID(self, progid):
         ''' Returns CLSID for a ProgID '''
         for c in self.prog_ids:
@@ -70,3 +77,9 @@ class Registrar(object):
             return self.prog_ids[clsid]
             
         return None
+
+    def AddInstance(self, name, used_id, instance):
+        ''' Add component instance '''
+
+        self._comp_instances[name] = [ used_id, instance ]
+        instance.AddRef(IUnknown.IID_IUnknown())

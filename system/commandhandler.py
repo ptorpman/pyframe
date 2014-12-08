@@ -1,5 +1,6 @@
 import imp
 import os
+import json
 
 from system.registrar import Registrar
 from interfaces.iclassfactory import IClassFactory
@@ -16,6 +17,7 @@ class CommandHandler(object):
             cls._commands['help']   = cls._instance.help
             cls._commands['create'] = cls._instance.create
             cls._commands['list']   = cls._instance.list_cmd
+            cls._commands['load']   = cls._instance.load_cmd
 
             return cls._instance
 
@@ -37,7 +39,7 @@ class CommandHandler(object):
         ''' Command for displaying help '''
         if len(argv) == 1:
             print 'Available commands:'
-            for cmd in self._commands:
+            for cmd in sorted(self._commands):
                 print cmd
             return
 
@@ -62,22 +64,64 @@ class CommandHandler(object):
                 # User is using ProgID
                 use_id = Registrar().CLSIDFromProgID(use_id)
 
-            cls_obj = Registrar().CoGetClassObject(use_id, 
-                                                   IClassFactory.IID_IClassFactory())
-            inst = cls_obj.CreateInstance(argv[2])
+            cls_obj = Registrar().CoGetClassObject(use_id, IClassFactory.IID_IClassFactory())
+            inst = cls_obj.CreateInstance(use_id, argv[2])
+
+            Registrar().AddInstance(argv[2], argv[1], inst)
 
         except Exception as exc:
+            raise
             print 'ERROR: Could not find class object for - %s (%s)' % (argv[1], exc)
             return
             
     def list_cmd(self, argv, show_help = False):
         ''' Command for listing information '''
-
-        if show_help or len(argv) != 2:
+        
+        if show_help:
             print 'Usage: list [--clsid]'
             return
+
+        if len(argv) > 1:
+            if argv[1] != '--clsid':
+                print 'Usage: list [--clsid]'
+                return
+
+            Registrar().print_registered_clsid()
+            return
+
+        Registrar().print_instances()
+        
+    def load_cmd(self, argv, show_help = False):
+        ''' Command for loading configuration '''
+
+        if show_help or len(argv) != 2:
+            print 'Usage: load <file>'
+            return
             
-        Registrar().print_registered_clsid()
+        try:
+            config = {}
+            with open(argv[1], 'r') as aFile:
+                config = json.load(aFile)
+                
+                for cmd in config.keys():
+                    if cmd == 'create':
+                        for use_id in config[cmd].keys():
+                            argv = {}
+
+                            for i in range(len(config[cmd][use_id])):
+                                inst = config[cmd][use_id][i]
+                                argv[0] = 'create'
+                                argv[1] = str(use_id)
+                                argv[2] = str(inst)
+
+                                self.create(argv)
+
+
+
+
+        except Exception as exc:
+            raise
+            print "ERROR: Failed to load configuration. Exception: %s" % exc
 
 
 
