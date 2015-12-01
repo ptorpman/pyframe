@@ -1,5 +1,28 @@
+# -*- mode: Python; fill-column: 75; comment-column: 70; -*-
+#
+#  This file is part of Torpman's PyFrame 
+#         https://github.com/ptorpman/pyframe
+# 
+#  This sofware is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.
+# 
+#  This software is distributed in the hope that it will 
+#  be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.or/licenses/>.
+#
+#  Author: Peter R. Torpman (peter at torpman dot se)
+#
+#------------------------------------------------------------------------------
+
 from uuid import UUID
 from interfaces.iunknown import IUnknown
+from common.exceptions    import NoReferencesException
 
 class Registrar(object):
     ''' The singleton registrar of the system '''
@@ -83,3 +106,15 @@ class Registrar(object):
 
         self._comp_instances[name] = [ used_id, instance ]
         instance.AddRef(IUnknown.IID_IUnknown())
+
+    def RemoveInstance(self, name):
+        ''' Delete component instance '''
+        if not self._comp_instances.has_key(name):
+            raise Exception('Instance %s does not exist' % name)
+
+        try:
+            self._comp_instances[name][1].Release(IUnknown.IID_IUnknown())
+        except NoReferencesException as exc:
+            # No more references left
+            del self._comp_instances[name]
+            

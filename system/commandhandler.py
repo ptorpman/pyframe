@@ -1,9 +1,31 @@
+# -*- mode: Python; fill-column: 75; comment-column: 70; -*-
+#
+#  This file is part of Torpman's PyFrame 
+#         https://github.com/ptorpman/pyframe
+# 
+#  This sofware is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.
+# 
+#  This software is distributed in the hope that it will 
+#  be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.or/licenses/>.
+#
+#  Author: Peter R. Torpman (peter at torpman dot se)
+#
+#------------------------------------------------------------------------------
 import imp
 import os
 import json
 
 from system.registrar import Registrar
 from interfaces.iclassfactory import IClassFactory
+from common.exceptions    import NoSuchCommand
 
 class CommandHandler(object):
     ''' The singleton that handles the global commands of PyFrame '''
@@ -15,7 +37,8 @@ class CommandHandler(object):
             cls._instance = super(CommandHandler, cls).__new__(cls, *args, **kwargs)
             cls._commands = {}
             cls._commands['help']   = cls._instance.help
-            cls._commands['create'] = cls._instance.create
+            cls._commands['create'] = cls._instance.create_cmd
+            cls._commands['delete'] = cls._instance.delete_cmd
             cls._commands['list']   = cls._instance.list_cmd
             cls._commands['load']   = cls._instance.load_cmd
 
@@ -31,7 +54,7 @@ class CommandHandler(object):
         argv = cmd_string.split(' ')
 
         if not self._commands.has_key(argv[0]):
-            raise Exception('ERROR: Unknown command - %s' % argv[0])
+            raise NoSuchCommand('ERROR: Unknown command - %s' % argv[0])
 
         return self._commands[argv[0]](argv)
 
@@ -51,7 +74,7 @@ class CommandHandler(object):
             self._commands[argv[1]](None, show_help = True)
 
 
-    def create(self, argv, show_help = False):
+    def create_cmd(self, argv, show_help = False):
         ''' Command for creating a component instance '''
         
         if show_help or len(argv) != 3:
@@ -74,6 +97,16 @@ class CommandHandler(object):
             print 'ERROR: Could not find class object for - %s (%s)' % (argv[1], exc)
             return
             
+    def delete_cmd(self, argv, show_help = False):
+        ''' Command for deleting instances '''
+
+        if show_help or len(argv) != 2:
+            print 'Usage: delete <name>'
+            return
+
+        Registrar().RemoveInstance(argv[1])
+
+        
     def list_cmd(self, argv, show_help = False):
         ''' Command for listing information '''
         
@@ -114,7 +147,7 @@ class CommandHandler(object):
                                 argv[1] = str(use_id)
                                 argv[2] = str(inst)
 
-                                self.create(argv)
+                                self.create_cmd(argv)
 
 
 
