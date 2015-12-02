@@ -23,9 +23,10 @@ import imp
 import os
 import json
 
-from system.registrar import Registrar
+from common.exceptions        import NoSuchCommand
+from system.registrar         import Registrar
 from interfaces.iclassfactory import IClassFactory
-from common.exceptions    import NoSuchCommand
+from interfaces.iconfig       import IConfig
 
 class CommandHandler(object):
     ''' The singleton that handles the global commands of PyFrame '''
@@ -36,11 +37,13 @@ class CommandHandler(object):
         if not cls._instance:
             cls._instance = super(CommandHandler, cls).__new__(cls, *args, **kwargs)
             cls._commands = {}
-            cls._commands['help']   = cls._instance.help
-            cls._commands['create'] = cls._instance.create_cmd
-            cls._commands['delete'] = cls._instance.delete_cmd
-            cls._commands['list']   = cls._instance.list_cmd
-            cls._commands['load']   = cls._instance.load_cmd
+            cls._commands['help']    = cls._instance.help
+            cls._commands['create']  = cls._instance.create_cmd
+            cls._commands['delete']  = cls._instance.delete_cmd
+            cls._commands['list']    = cls._instance.list_cmd
+            cls._commands['load']    = cls._instance.load_cmd
+            cls._commands['config']  = cls._instance.config_cmd
+            cls._commands['connect'] = cls._instance.connect_cmd
 
             return cls._instance
 
@@ -123,6 +126,27 @@ class CommandHandler(object):
             return
 
         Registrar().print_instances()
+
+
+    def config_cmd(self, argv, show_help = False):
+        ''' Command for configuring a component '''
+
+        if show_help:
+            print 'Usage: config <name> <json-string>'
+            return
+
+        print argv
+        
+
+    def connect_cmd(self, argv, show_help = False):
+        ''' Command for connecting a component to an other '''
+
+        if show_help:
+            print 'Usage: config <name1> <name2> <interface>'
+            return
+        
+        
+
         
     def load_cmd(self, argv, show_help = False):
         ''' Command for loading configuration '''
@@ -149,6 +173,17 @@ class CommandHandler(object):
 
                                 self.create_cmd(argv)
 
+                    elif cmd == 'config':
+                        print config[cmd].keys()
+                        for use_id in config[cmd].keys():
+                            inst = Registrar().GetInstance(use_id)
+
+                            if not inst:
+                                raise Exception('Instance called "%s" does not exist' % use_id)
+
+                            iface = inst.QueryInterface(IConfig.IID_IConfig())
+                            print iface
+                            iface.Configure(config[cmd][use_id])
 
 
 

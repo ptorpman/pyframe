@@ -37,7 +37,8 @@ class ComponentBase(IUnknown):
 
     def __str__(self):
         ''' String representation of component '''
-        return self.name
+        #return self.name
+        return self
 
 
     #-------------------------------------------------------------------------

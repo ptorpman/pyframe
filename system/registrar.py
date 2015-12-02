@@ -85,7 +85,6 @@ class Registrar(object):
         for comp in sorted(self._comp_instances.keys()):
             print "%-32s - %s" % (comp, self._comp_instances[comp][0])
 
-
     def CLSIDFromProgID(self, progid):
         ''' Returns CLSID for a ProgID '''
         for c in self.prog_ids:
@@ -104,9 +103,19 @@ class Registrar(object):
     def AddInstance(self, name, used_id, instance):
         ''' Add component instance '''
 
+        if self._comp_instances.has_key(name):
+            raise Exception('Component called "%s" already exists' % name)
+        
         self._comp_instances[name] = [ used_id, instance ]
         instance.AddRef(IUnknown.IID_IUnknown())
 
+    def GetInstance(self, name):
+        ''' Return component instance with name '''
+        if not self._comp_instances.has_key(name):
+            return None
+
+        return self._comp_instances[name][1]
+        
     def RemoveInstance(self, name):
         ''' Delete component instance '''
         if not self._comp_instances.has_key(name):
