@@ -21,8 +21,10 @@
 #------------------------------------------------------------------------------
 
 from uuid import UUID
+
 from interfaces.iunknown import IUnknown
-from common.exceptions    import NoReferencesException
+from common.exceptions   import NoReferencesException
+from system.trace        import Trace
 
 class Registrar(object):
     ''' The singleton registrar of the system '''
@@ -53,7 +55,7 @@ class Registrar(object):
         
         self.class_objects[clsid] = instance
         self.prog_ids[clsid]      = progid
-        print "* Added class object for CLSID: %s (%s)" % (clsid, progid)
+        Trace().debug("Added class object for CLSID: %s (%s)" % (clsid, progid))
 
     def CoGetClassObject(self, clsid, iid):
         ''' Return class object for a CLSID '''
@@ -82,8 +84,17 @@ class Registrar(object):
 
     def print_instances(self):
         ''' Print all created instances '''
+
+        if not self._comp_instances:
+            print "* No instances created."
+            return
+
+        print '%-30s %-32s %s' % ('Instance', 'ProgID', 'CLSID')
+        print '-' * 100
+
         for comp in sorted(self._comp_instances.keys()):
-            print "%-32s - %s" % (comp, self._comp_instances[comp][0])
+            print '%-30s %-32s %s' % (comp, self.ProgIDFromCLSID(self._comp_instances[comp][0]),
+                                      self._comp_instances[comp][0])
 
     def CLSIDFromProgID(self, progid):
         ''' Returns CLSID for a ProgID '''

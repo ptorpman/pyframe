@@ -28,6 +28,14 @@ class NoSuchCommand(Exception):
     def __str__(self):
         return 'NoSuchCommand: %s' % self.output
 
+class CliArgException(Exception):
+    ''' Exception raised when a command is used improperly '''
+    def __init__(self, output):
+        self.output = output
+
+    def __str__(self):
+        return 'CliArgException: %s' % self.output
+    
 
 class NoReferencesException(Exception):
     ''' Exception raised when all references to an instances are removed '''

@@ -27,12 +27,12 @@ import abc
 import json
 from uuid import UUID
 
-from common.component import ComponentBase
-from common.exceptions import NoReferencesException
+from common.component         import ComponentBase
+from common.exceptions        import NoReferencesException
 from interfaces.iunknown      import IUnknown
 from interfaces.iclassfactory import IClassFactory
 from interfaces.iconfig       import IConfig
-
+from system.trace             import Trace
 
 class TestFactory(ComponentBase, IClassFactory):
 
@@ -96,15 +96,13 @@ class Test(ComponentBase, ITest, IConfig):
         
     # ITest methods    
     def test_me(self):
-        print '%s: Test me!' % self
-
+        Trace().debug('%s: Test me!' % self)
+        
     # IConfig methods
     def Configure(self, config):
         ''' Configure component '''
         self._config = config
-        print 'DEBUG: %s: Loaded config - %s' % (self.name, self._config)
-        
-
+        Trace().debug('%s: Loaded config - %s' % (self.name, self._config))
         
 
 #--------------------------------------------------------------------
@@ -113,7 +111,5 @@ class Test(ComponentBase, ITest, IConfig):
 
 def load_this():
     ''' To be called by CompLoader '''
-
-    print 'DEBUG: Loading file... %s' % __file__
     from system.registrar import Registrar
     Registrar().CoRegisterClassObject(Test.CLSID_Test(), Test.ProgID, TestFactory())

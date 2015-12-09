@@ -23,6 +23,7 @@ from interfaces.iunknown  import IUnknown
 from common.exceptions    import NoInterfaceException
 from common.exceptions    import NoReferencesException
 from common.exceptions    import TooManyReleaseException
+from system.trace         import Trace
 
 class ComponentBase(IUnknown):
     ''' Base class for components in PyFrame ''' 
@@ -37,8 +38,7 @@ class ComponentBase(IUnknown):
 
     def __str__(self):
         ''' String representation of component '''
-        #return self.name
-        return self
+        return self.name
 
 
     #-------------------------------------------------------------------------
@@ -50,6 +50,7 @@ class ComponentBase(IUnknown):
         if not self._interfaces.has_key(iid): 
             raise NoInterfaceException('Interface %s not supported' % iid)
 
+        Trace().debug("QueryInterface: AddRef().%s %s: %d" % (self.name, iid, self._interfaces[iid]))
         self.AddRef(iid)
         return self
 
@@ -59,7 +60,7 @@ class ComponentBase(IUnknown):
             raise NoInterfaceException('Interface %s not supported' % iid)
 
         self._interfaces[iid] = self._interfaces[iid] + 1
-        print "AddRef().%s %s: %d" % (self.name, iid, self._interfaces[iid])
+        Trace().debug("AddRef().%s %s: %d" % (self.name, iid, self._interfaces[iid]))
 
     def Release(self, iid): 
         ''' Remove reference from interface '''
@@ -72,8 +73,8 @@ class ComponentBase(IUnknown):
             raise TooManyReleaseException('%s released too many times' % iid)
 
         if  set(self._interfaces.values()) == set([0]):
-            print "Release(): No refs left. Deleting..."
+            Trace().debug("Release(): No refs left. Deleting...")
             raise NoReferencesException('%s: No references left.' % self.name)
         else:
-            print "Release() %s: %s" % (iid, self._interfaces[iid])
+            Trace().debug("Release() %s: %s" % (iid, self._interfaces[iid]))
 

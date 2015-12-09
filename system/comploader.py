@@ -22,6 +22,7 @@
 import glob
 import imp
 import os
+from system.trace             import Trace
 
 class CompLoader(object):
     ''' The singleton that loads components in the component library into the system '''
@@ -39,7 +40,7 @@ class CompLoader(object):
         pass
 
     def load_components(self, directories):
-        print '* Loading components from %s ...' % directories
+        Trace().info('Loading components from %s ...' % directories)
 
         for d in directories:
             files = glob.glob('%s/*.py' % d)

@@ -22,11 +22,13 @@
 import imp
 import os
 import json
+from uuid import UUID
 
 from common.exceptions        import NoSuchCommand
 from system.registrar         import Registrar
 from interfaces.iclassfactory import IClassFactory
 from interfaces.iconfig       import IConfig
+from system.trace             import Trace
 
 class CommandHandler(object):
     ''' The singleton that handles the global commands of PyFrame '''
@@ -55,7 +57,11 @@ class CommandHandler(object):
     def handle_command(self, cmd_string):
         ''' Handle a command line argument '''
         argv = cmd_string.split(' ')
+        argv = filter(None, argv)
 
+        if not argv:
+            return
+        
         if not self._commands.has_key(argv[0]):
             raise NoSuchCommand('ERROR: Unknown command - %s' % argv[0])
 
@@ -71,8 +77,7 @@ class CommandHandler(object):
 
         if len(argv) == 2:
             if not self._commands.has_key(argv[1]):
-                print 'Usage: help [<command>]'
-                return
+                raise CliArgException('Usage: help [<command>]')
 
             self._commands[argv[1]](None, show_help = True)
 
@@ -81,31 +86,25 @@ class CommandHandler(object):
         ''' Command for creating a component instance '''
         
         if show_help or len(argv) != 3:
-            print 'Usage: create <CLSID>|<ProgID> <name>'
-            return
+            raise CliArgException('Usage: create <CLSID>|<ProgID> <name>')
 
-        try:
-            use_id = argv[1]
-            if '.' in use_id:
-                # User is using ProgID
-                use_id = Registrar().CLSIDFromProgID(use_id)
+        use_id = argv[1]
+        if '.' in use_id:
+            # User is using ProgID
+            use_id = Registrar().CLSIDFromProgID(use_id)
+        else:
+            use_id = UUID('{%s}' % use_id) 
 
-            cls_obj = Registrar().CoGetClassObject(use_id, IClassFactory.IID_IClassFactory())
-            inst = cls_obj.CreateInstance(use_id, argv[2])
+        cls_obj = Registrar().CoGetClassObject(use_id, IClassFactory.IID_IClassFactory())
+        inst = cls_obj.CreateInstance(use_id, argv[2])
 
-            Registrar().AddInstance(argv[2], argv[1], inst)
-
-        except Exception as exc:
-            raise
-            print 'ERROR: Could not find class object for - %s (%s)' % (argv[1], exc)
-            return
+        Registrar().AddInstance(argv[2], use_id, inst)
             
     def delete_cmd(self, argv, show_help = False):
         ''' Command for deleting instances '''
 
         if show_help or len(argv) != 2:
-            print 'Usage: delete <name>'
-            return
+            raise CliArgException('Usage: delete <name>')
 
         Registrar().RemoveInstance(argv[1])
 
@@ -114,8 +113,7 @@ class CommandHandler(object):
         ''' Command for listing information '''
         
         if show_help:
-            print 'Usage: list [--clsid]'
-            return
+            raise CliArgException('Usage: list [--clsid]')
 
         if len(argv) > 1:
             if argv[1] != '--clsid':
@@ -132,8 +130,7 @@ class CommandHandler(object):
         ''' Command for configuring a component '''
 
         if show_help:
-            print 'Usage: config <name> <json-string>'
-            return
+            raise CliArgException('Usage: config <name> <json-string>')
 
         print argv
         
@@ -142,54 +139,43 @@ class CommandHandler(object):
         ''' Command for connecting a component to an other '''
 
         if show_help:
-            print 'Usage: config <name1> <name2> <interface>'
-            return
-        
-        
+            raise CliArgException('Usage: config <name1> <name2> <interface>')
 
         
     def load_cmd(self, argv, show_help = False):
         ''' Command for loading configuration '''
 
         if show_help or len(argv) != 2:
-            print 'Usage: load <file>'
-            return
+            raise CliArgException('Usage: load <file>')
             
-        try:
-            config = {}
-            with open(argv[1], 'r') as aFile:
-                config = json.load(aFile)
-                
-                for cmd in config.keys():
-                    if cmd == 'create':
-                        for use_id in config[cmd].keys():
-                            argv = {}
+        config = {}
+        with open(argv[1], 'r') as aFile:
+            config = json.load(aFile)
 
-                            for i in range(len(config[cmd][use_id])):
-                                inst = config[cmd][use_id][i]
-                                argv[0] = 'create'
-                                argv[1] = str(use_id)
-                                argv[2] = str(inst)
+            for cmd in config.keys():
+                if cmd == 'create':
+                    for use_id in config[cmd].keys():
+                        argv = {}
 
-                                self.create_cmd(argv)
+                        for i in range(len(config[cmd][use_id])):
+                            inst = config[cmd][use_id][i]
+                            argv[0] = 'create'
+                            argv[1] = str(use_id)
+                            argv[2] = str(inst)
 
-                    elif cmd == 'config':
-                        print config[cmd].keys()
-                        for use_id in config[cmd].keys():
-                            inst = Registrar().GetInstance(use_id)
+                            self.create_cmd(argv)
 
-                            if not inst:
-                                raise Exception('Instance called "%s" does not exist' % use_id)
+                elif cmd == 'config':
+                    for use_id in config[cmd].keys():
+                        inst = Registrar().GetInstance(use_id)
 
-                            iface = inst.QueryInterface(IConfig.IID_IConfig())
-                            print iface
-                            iface.Configure(config[cmd][use_id])
+                        if not inst:
+                            raise Exception('Instance called "%s" does not exist' % use_id)
 
+                        iface = inst.QueryInterface(IConfig.IID_IConfig())
+                        iface.Configure(config[cmd][use_id])
+                        inst.Release(IConfig.IID_IConfig())
 
-
-        except Exception as exc:
-            raise
-            print "ERROR: Failed to load configuration. Exception: %s" % exc
 
 
 

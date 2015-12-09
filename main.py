@@ -24,14 +24,17 @@ import os
 import rlcompleter
 import readline
 import subprocess
+from system.trace          import Trace
 from system.comploader     import CompLoader
 from system.commandhandler import CommandHandler
 from common.exceptions     import NoSuchCommand
 
-
 readline.parse_and_bind('tab: complete')
 
 comp_libraries = [os.path.abspath(os.path.join(os.getcwd(), 'complib'))]
+
+Trace().set_logging(use_debug = False, logfile = None)
+Trace().info('Starting PyFrame...')
 
 CompLoader().load_components(comp_libraries)
 CommandHandler()
@@ -46,7 +49,7 @@ while True:
     try:
         CommandHandler().handle_command(line)
     except NoSuchCommand as exc:
-        print '* Executing shell command: %s' % line
+        Trace().info('Executing shell command: %s' % line)
         os.system(line)
     except Exception as exc3:
         print 'ERROR: %s' % exc3
