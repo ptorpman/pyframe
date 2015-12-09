@@ -19,26 +19,8 @@
 #  Author: Peter R. Torpman (peter at torpman dot se)
 #
 #------------------------------------------------------------------------------
-from iunknown import IUnknown 
-from uuid import UUID
-
-from abc import ABCMeta, abstractmethod
-from interfaces.iid import IID
-
-
-class IConfig(IUnknown):
-    ''' Interface implemented by the all components that are configurable '''
-    @staticmethod
-    def IID_IConfig():
-        return IID('IConfig', UUID('{63422350-9830-11e5-b94e-0800274bfca2}'))
-    
-    @staticmethod
-    def version(): return '1.0'
-
-    def __init__(self, parent):
-        self._parent = parent
-
-    @abstractmethod
-    def Configure(self, config): 
-        ''' Configure component. '''
-        pass
+class IID(object):
+    ''' Class to represent an IID '''
+    def __init__(self, name, iid):
+        self.name = name
+        self.iid  = iid

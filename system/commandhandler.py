@@ -70,9 +70,7 @@ class CommandHandler(object):
     def help(self, argv):
         ''' Command for displaying help '''
         if len(argv) == 1:
-            print 'Available commands:'
-            for cmd in sorted(self._commands):
-                print cmd
+            print 'Available commands: %s' % ', '.join(sorted(self._commands))
             return
 
         if len(argv) == 2:

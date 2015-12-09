@@ -37,6 +37,7 @@ class Registrar(object):
             cls._instance.class_objects = {}
             cls._instance.prog_ids = {}
             cls._comp_instances = {}
+            cls._registered_interfaces = {}
 
             return cls._instance
 
@@ -76,7 +77,7 @@ class Registrar(object):
         for obj in self.class_objects:
             val.append((str(obj), self.class_objects[obj]))
 
-        print '%-45s %-32s %s' % ('Class ID', 'ProgID', 'Class Object')
+        print '%-45s %-32s %s' % ('CLSID', 'ProgID', 'Class Object')
         print '-' * 100
 
         for clsid in val:
@@ -138,3 +139,7 @@ class Registrar(object):
             # No more references left
             del self._comp_instances[name]
             
+
+    def RegisterInterface(self, iface_name, iface_id, comp_name):
+        ''' Register interface for a component '''
+        print 'IID: %s %s NAME: %s' % (iface_name, iface_id, comp_name)

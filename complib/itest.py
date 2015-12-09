@@ -19,18 +19,20 @@
 #  Author: Peter R. Torpman (peter at torpman dot se)
 #
 #------------------------------------------------------------------------------
-from iunknown import IUnknown 
+import abc
 from uuid import UUID
 
-from abc import ABCMeta, abstractmethod
-from interfaces.iid import IID
+from interfaces.iunknown import IUnknown
+from interfaces.iid      import IID
 
+class ITest(IUnknown):
+    __metaclass__ = abc.ABCMeta
 
-class IConfig(IUnknown):
-    ''' Interface implemented by the all components that are configurable '''
-    @staticmethod
-    def IID_IConfig():
-        return IID('IConfig', UUID('{63422350-9830-11e5-b94e-0800274bfca2}'))
+    name = 'ITest'
+    
+    @classmethod
+    def IID_ITest(cls):
+        return IID('ITest', UUID('{10000000-0000-0000-C000-000000000046}'))
     
     @staticmethod
     def version(): return '1.0'
@@ -38,7 +40,5 @@ class IConfig(IUnknown):
     def __init__(self, parent):
         self._parent = parent
 
-    @abstractmethod
-    def Configure(self, config): 
-        ''' Configure component. '''
-        pass
+    @abc.abstractmethod
+    def test_me(self): pass

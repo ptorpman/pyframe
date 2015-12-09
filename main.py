@@ -24,6 +24,9 @@ import os
 import rlcompleter
 import readline
 import subprocess
+import traceback
+import sys
+
 from system.trace          import Trace
 from system.comploader     import CompLoader
 from system.commandhandler import CommandHandler
@@ -33,7 +36,7 @@ readline.parse_and_bind('tab: complete')
 
 comp_libraries = [os.path.abspath(os.path.join(os.getcwd(), 'complib'))]
 
-Trace().set_logging(use_debug = False, logfile = None)
+Trace().set_logging(use_debug = True, logfile = None)
 Trace().info('Starting PyFrame...')
 
 CompLoader().load_components(comp_libraries)
@@ -52,4 +55,6 @@ while True:
         Trace().info('Executing shell command: %s' % line)
         os.system(line)
     except Exception as exc3:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         print 'ERROR: %s' % exc3
+        traceback.print_tb(exc_traceback)

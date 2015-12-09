@@ -20,16 +20,20 @@
 #
 #------------------------------------------------------------------------------
 
-from iunknown import IUnknown 
+from abc import ABCMeta, abstractmethod
 from uuid import UUID
 
-from abc import ABCMeta, abstractmethod
+from iunknown import IUnknown 
+from interfaces.iid import IID
+
 
 class IClassFactory(IUnknown):
     __metaclass__ = ABCMeta
 
     @staticmethod
-    def IID_IClassFactory(): return UUID('{00000001-0000-0000-C000-000000000046}')
+    def IID_IClassFactory():
+        return IID('IClassFactory', UUID('{00000001-0000-0000-C000-000000000046}'))
+    
     @staticmethod
     def version(): return '1.0'
 

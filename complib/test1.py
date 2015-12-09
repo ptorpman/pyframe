@@ -33,29 +33,30 @@ from interfaces.iunknown      import IUnknown
 from interfaces.iclassfactory import IClassFactory
 from interfaces.iconfig       import IConfig
 from system.trace             import Trace
+from complib.itest            import ITest
 
-class TestFactory(ComponentBase, IClassFactory):
+class Test1Factory(ComponentBase, IClassFactory):
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance                   = super(TestFactory, cls).__new__(cls, *args, **kwargs)
-            cls._instance.name              = "TestFactory"
+            cls._instance                   = super(Test1Factory, cls).__new__(cls, *args, **kwargs)
+            cls._instance.name              = "Test1Factory"
             cls._instance._created_instances = {}
             return cls._instance
 
         return cls._instance
 
     def __init__(self):
-        super(TestFactory, self).__init__('TestFactory', 
+        super(Test1Factory, self).__init__('Test1Factory', 
                                           [IClassFactory.IID_IClassFactory()])
 
     # IClassFactory methods
     def CreateInstance(self, iid, name): 
         # FIXME: Check IID!
         if not self._created_instances.has_key(name):
-            self._created_instances[name] = Test(name)
+            self._created_instances[name] = Test1(name)
             return self._created_instances[name]
 
         raise Exception('Instance %s already exists' % name)
@@ -63,35 +64,19 @@ class TestFactory(ComponentBase, IClassFactory):
     def LockServer(self, block): 
         pass
 
-class ITest(IUnknown):
-    __metaclass__ = abc.ABCMeta
+class Test1(ComponentBase, ITest, IConfig):
+
+    ProgID = 'test.Test1.1'
 
     @classmethod
-    def IID_ITest(cls): return UUID('{10000000-0000-0000-C000-000000000046}')
-    @staticmethod
-    def version(): return '1.0'
-
-    def __init__(self, parent):
-        self._parent = parent
-
-    @abc.abstractmethod
-    def test_me(self): pass
-
-
-
-class Test(ComponentBase, ITest, IConfig):
-
-    ProgID = 'test.Test.1'
-
-    @classmethod
-    def CLSID_Test(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e72}')
+    def CLSID(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e72}')
 
     def __init__(self, name):
         ''' Constructor '''
         # Supported interfaces
         interfaces = [ITest.IID_ITest(), IConfig.IID_IConfig()]
         
-        super(Test, self).__init__(name, interfaces)
+        super(Test1, self).__init__(name, interfaces)
         self._config = {}
         
     # ITest methods    
@@ -112,4 +97,4 @@ class Test(ComponentBase, ITest, IConfig):
 def load_this():
     ''' To be called by CompLoader '''
     from system.registrar import Registrar
-    Registrar().CoRegisterClassObject(Test.CLSID_Test(), Test.ProgID, TestFactory())
+    Registrar().CoRegisterClassObject(Test1.CLSID(), Test1.ProgID, Test1Factory())

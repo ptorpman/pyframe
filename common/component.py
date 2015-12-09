@@ -20,21 +20,42 @@
 #
 #------------------------------------------------------------------------------
 from interfaces.iunknown  import IUnknown
+from interfaces.iid       import IID
 from common.exceptions    import NoInterfaceException
 from common.exceptions    import NoReferencesException
 from common.exceptions    import TooManyReleaseException
 from system.trace         import Trace
+from system.registrar     import Registrar
 
 class ComponentBase(IUnknown):
     ''' Base class for components in PyFrame ''' 
     def __init__(self, name, supported_iids):
-        self.name           = name
-        self._interfaces     = {}
-        
-        self._interfaces[IUnknown.IID_IUnknown()] = 0
+        self.name             = name
+        self._interface_names = {}
+        self._interface_refs  = {}
 
-        for i in supported_iids:
-            self._interfaces[i] = 0
+        for iid in supported_iids:
+            Trace().debug("%s supports interface: %s" % (name, iid.name))
+            self._interface_names[iid.name] = iid.iid
+            self._interface_refs[iid.name]  = 0
+            Registrar().RegisterInterface(iid.name, iid.iid, self.name)
+
+        # Safeguard to make sure IUnknown is always added
+        if not self._interface_names.has_key('IUnknown'):
+            iid = IUnknown.IID_IUnknown()
+            self._interface_names[iid.name] = iid.iid
+            self._interface_refs[iid.name]  = 0
+            
+
+            
+        if hasattr(self, 'ProgID'):
+            print self.ProgID
+
+        op = getattr(self, 'CLSID', None)
+
+        if callable(op):
+            print 'CLSID: %s' % str(self.CLSID())
+        
 
     def __str__(self):
         ''' String representation of component '''
@@ -46,35 +67,53 @@ class ComponentBase(IUnknown):
     #-------------------------------------------------------------------------
     def QueryInterface(self, iid): 
         ''' Return pointer to correct interface '''
-        
-        if not self._interfaces.has_key(iid): 
-            raise NoInterfaceException('Interface %s not supported' % iid)
 
-        Trace().debug("QueryInterface: AddRef().%s %s: %d" % (self.name, iid, self._interfaces[iid]))
-        self.AddRef(iid)
+        if isinstance(iid, IID):
+            iface_name = iid.name
+        else:
+            iface_name = iid
+        
+        if not self._interface_names.has_key(iface_name): 
+            raise NoInterfaceException('Interface %s not supported' % iface_name)
+
+        Trace().debug("QueryInterface: AddRef().%s %s %d" % (self.name, iface_name, self._interface_refs[iface_name]))
+        self.AddRef(iface_name)
         return self
 
     def AddRef(self, iid): 
         ''' Add reference to interface '''
-        if not self._interfaces.has_key(iid): 
-            raise NoInterfaceException('Interface %s not supported' % iid)
+        if isinstance(iid, IID):
+            iface_name = iid.name
+        else:
+            iface_name = iid
 
-        self._interfaces[iid] = self._interfaces[iid] + 1
-        Trace().debug("AddRef().%s %s: %d" % (self.name, iid, self._interfaces[iid]))
+        if not self._interface_names.has_key(iface_name): 
+            raise NoInterfaceException('Interface %s not supported' % iface_name)
+
+        self._interface_refs[iface_name] += 1
+        Trace().debug("AddRef().%s %s: %d" % (self.name, iface_name, self._interface_refs[iface_name]))
 
     def Release(self, iid): 
         ''' Remove reference from interface '''
-        if not self._interfaces.has_key(iid): 
-            raise NoInterfaceException('Interface %s not supported' % iid)
 
-        self._interfaces[iid] = self._interfaces[iid] - 1
+        if isinstance(iid, IID):
+            iface_name = iid.name
+        elif isinstance(iid, str):
+            iface_name = iid
+        else:
+            raise Exception('Incorrect parameter')
+        
+        if not self._interface_names.has_key(iface_name): 
+            raise NoInterfaceException('Interface %s not supported' % iface_name)
 
-        if self._interfaces[iid] < 0:
-            raise TooManyReleaseException('%s released too many times' % iid)
+        self._interface_refs[iface_name] -= 1
 
-        if  set(self._interfaces.values()) == set([0]):
+        if self._interface_refs[iface_name] < 0:
+            raise TooManyReleaseException('%s released too many times' % iface_name)
+
+        if  set(self._interface_refs.values()) == set([0]):
             Trace().debug("Release(): No refs left. Deleting...")
             raise NoReferencesException('%s: No references left.' % self.name)
         else:
-            Trace().debug("Release() %s: %s" % (iid, self._interfaces[iid]))
+            Trace().debug("Release() %s: %s" % (iface_name, self._interface_refs[iface_name]))
 
