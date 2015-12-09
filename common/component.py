@@ -46,17 +46,12 @@ class ComponentBase(IUnknown):
             self._interface_names[iid.name] = iid.iid
             self._interface_refs[iid.name]  = 0
             
-
+        # Safeguard to make sure IUnknown is always added
+        if not self._interface_names.has_key('IUnknown'):
+            iid = IUnknown.IID_IUnknown()
+            self._interface_names[iid.name] = iid.iid
+            self._interface_refs[iid.name]  = 0
             
-        if hasattr(self, 'ProgID'):
-            print self.ProgID
-
-        op = getattr(self, 'CLSID', None)
-
-        if callable(op):
-            print 'CLSID: %s' % str(self.CLSID())
-        
-
     def __str__(self):
         ''' String representation of component '''
         return self.name
