@@ -32,11 +32,58 @@ from common.exceptions        import NoReferencesException
 from interfaces.iunknown      import IUnknown
 from interfaces.iclassfactory import IClassFactory
 from interfaces.iconfig       import IConfig
+from interfaces.iconnect      import IConnect
 from system.trace             import Trace
 from complib.itest            import ITest
 
-class Test1Factory(ComponentBase, IClassFactory):
 
+class Test1(ComponentBase, IConfig, IConnect):
+    '''  
+    Component Example
+    This component implements some basic interfaces to make it
+    connectable and configurable.
+    '''
+
+    ProgID = 'test.Test1.1'
+
+    @classmethod
+    def CLSID(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e72}')
+
+    def __init__(self, name):
+        ''' Constructor '''
+        # Supported interfaces
+        interfaces = [IConfig.IID_IConfig(), IConnect.IID_IConnect()]
+        super(Test1, self).__init__(name, interfaces)
+        self._config = {}
+        self._connections = []
+        
+    # IConfig methods
+    def Configure(self, config):
+        ''' Configure component '''
+        self._config = config
+        Trace().logger().debug('%s: Loaded config - %s' % (self.name, self._config))
+        
+    # IConnect methods
+    def Connect(self, instance, interface, args):
+        ''' Connect to other components '''
+        Trace().logger().debug('%s: Connect - %s %s %s' % (self.name, instance, interface, args))
+
+        # Make sure other instance has the specified interface
+        iface = instance.QueryInterface(interface)
+
+        # Store connection information if needed later
+        self._connections.append((iface, interface))
+
+        # Execute interface method implemented by other instance
+        iface.test_me(args)
+
+        
+#--------------------------------------------------------------------
+# CLASS OBJECT (FACTORY)
+#--------------------------------------------------------------------
+
+class Test1Factory(ComponentBase, IClassFactory):
+    ''' This class is a factory for creating Test1 instances '''
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -64,31 +111,6 @@ class Test1Factory(ComponentBase, IClassFactory):
     def LockServer(self, block): 
         pass
 
-class Test1(ComponentBase, ITest, IConfig):
-
-    ProgID = 'test.Test1.1'
-
-    @classmethod
-    def CLSID(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e72}')
-
-    def __init__(self, name):
-        ''' Constructor '''
-        # Supported interfaces
-        interfaces = [ITest.IID_ITest(), IConfig.IID_IConfig()]
-        
-        super(Test1, self).__init__(name, interfaces)
-        self._config = {}
-        
-    # ITest methods    
-    def test_me(self):
-        Trace().debug('%s: Test me!' % self)
-        
-    # IConfig methods
-    def Configure(self, config):
-        ''' Configure component '''
-        self._config = config
-        Trace().debug('%s: Loaded config - %s' % (self.name, self._config))
-        
 
 #--------------------------------------------------------------------
 # COMPONENT REGISTRATION METHODS

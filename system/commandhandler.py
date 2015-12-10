@@ -25,6 +25,7 @@ import json
 from uuid import UUID
 
 from common.exceptions        import NoSuchCommand
+from common.exceptions        import CliArgException
 from system.registrar         import Registrar
 from interfaces.iclassfactory import IClassFactory
 from interfaces.iconfig       import IConfig
@@ -135,10 +136,19 @@ class CommandHandler(object):
 
     def connect_cmd(self, argv, show_help = False):
         ''' Command for connecting a component to an other '''
-
         if show_help:
-            raise CliArgException('Usage: config <name1> <name2> <interface>')
+            raise CliArgException('Usage: connect <name1> <name2> <interface> <args>')
 
+        Trace().logger().debug('Connecting %s with %s on %s with arguments %s',
+                      argv[0], argv[1], argv[2], argv[3])
+
+        inst1 = Registrar().GetInstance(argv[0])
+        iface_src  = inst1.QueryInterface('IConnect')
+        inst2 = Registrar().GetInstance(argv[1])
+        iface_src.Connect(inst2, argv[2], argv[3])
+        
+        
+        
         
     def load_cmd(self, argv, show_help = False):
         ''' Command for loading configuration '''
@@ -174,6 +184,17 @@ class CommandHandler(object):
                         iface.Configure(config[cmd][use_id])
                         inst.Release(IConfig.IID_IConfig())
 
+                elif cmd == 'connect':
+                    print 'Not Implemented yet!'
+                    for tmp in config[cmd]:
+                        args = {}
+                        args[0] = tmp['src']
+                        args[1] = tmp['dst']
+                        args[2] = tmp['iface']
+                        args[3] = tmp['args']
+                        
+                        self.connect_cmd(args, False)
+                        
 
 
 

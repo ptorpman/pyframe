@@ -57,4 +57,4 @@ while True:
     except Exception as exc3:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print 'ERROR: %s' % exc3
-        traceback.print_tb(exc_traceback)
+        x = traceback.print_tb(exc_traceback)

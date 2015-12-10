@@ -35,7 +35,7 @@ class ComponentBase(IUnknown):
         self._interface_refs  = {}
 
         for iid in supported_iids:
-            Trace().debug("%s supports interface: %s" % (name, iid.name))
+            Trace().logger().debug("%s supports interface: %s" % (name, iid.name))
             self._interface_names[iid.name] = iid.iid
             self._interface_refs[iid.name]  = 0
             Registrar().RegisterInterface(iid.name, iid.iid, self.name)
@@ -71,7 +71,7 @@ class ComponentBase(IUnknown):
         if not self._interface_names.has_key(iface_name): 
             raise NoInterfaceException('Interface %s not supported' % iface_name)
 
-        Trace().debug("QueryInterface: AddRef().%s %s %d" % (self.name, iface_name, self._interface_refs[iface_name]))
+        Trace().logger().debug("QueryInterface: AddRef().%s %s %d" % (self.name, iface_name, self._interface_refs[iface_name]))
         self.AddRef(iface_name)
         return self
 
@@ -86,7 +86,7 @@ class ComponentBase(IUnknown):
             raise NoInterfaceException('Interface %s not supported' % iface_name)
 
         self._interface_refs[iface_name] += 1
-        Trace().debug("AddRef().%s %s: %d" % (self.name, iface_name, self._interface_refs[iface_name]))
+        Trace().logger().debug("AddRef().%s %s: %d" % (self.name, iface_name, self._interface_refs[iface_name]))
 
     def Release(self, iid): 
         ''' Remove reference from interface '''
@@ -107,8 +107,8 @@ class ComponentBase(IUnknown):
             raise TooManyReleaseException('%s released too many times' % iface_name)
 
         if  set(self._interface_refs.values()) == set([0]):
-            Trace().debug("Release(): No refs left. Deleting...")
+            Trace().logger().debug("Release(): No refs left. Deleting...")
             raise NoReferencesException('%s: No references left.' % self.name)
         else:
-            Trace().debug("Release() %s: %s" % (iface_name, self._interface_refs[iface_name]))
+            Trace().logger().debug("Release() %s: %s" % (iface_name, self._interface_refs[iface_name]))
 

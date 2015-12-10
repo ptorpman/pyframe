@@ -56,7 +56,7 @@ class Registrar(object):
         
         self.class_objects[clsid] = instance
         self.prog_ids[clsid]      = progid
-        Trace().debug("Added class object for CLSID: %s (%s)" % (clsid, progid))
+        Trace().logger().debug("Added class object for CLSID: %s (%s)" % (clsid, progid))
 
     def CoGetClassObject(self, clsid, iid):
         ''' Return class object for a CLSID '''

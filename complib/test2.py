@@ -35,7 +35,44 @@ from interfaces.iconfig       import IConfig
 from system.trace             import Trace
 from complib.itest            import ITest
 
+
+class Test2(ComponentBase, ITest, IConfig):
+    '''  
+    Component Example
+    This component implements interfaces to make it
+    configurable and also a test interface.
+    '''
+
+    ProgID = 'test.Test2.1'
+
+    @classmethod
+    def CLSID(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e80}')
+
+    def __init__(self, name):
+        ''' Constructor '''
+        # Supported interfaces
+        interfaces = [ITest.IID_ITest(), IConfig.IID_IConfig()]
+        
+        super(Test2, self).__init__(name, interfaces)
+        self._config = {}
+        
+    # ITest methods    
+    def test_me(self, args):
+        Trace().logger().debug('%s: Test me! (%s)' % (self, args))
+        
+    # IConfig methods
+    def Configure(self, config):
+        ''' Configure component '''
+        self._config = config
+        Trace().logger().debug('%s: Loaded config - %s' % (self.name, self._config))
+        
+
+#--------------------------------------------------------------------
+# CLASS OBJECT (FACTORY)
+#--------------------------------------------------------------------
+
 class Test2Factory(ComponentBase, IClassFactory):
+    ''' This class is a factory for creating Test2 instances '''
 
     _instance = None
 
@@ -64,32 +101,7 @@ class Test2Factory(ComponentBase, IClassFactory):
     def LockServer(self, block): 
         pass
 
-class Test2(ComponentBase, ITest, IConfig):
-
-    ProgID = 'test.Test2.1'
-
-    @classmethod
-    def CLSID(cls): return UUID('{a70f9a02-699e-11e4-96dd-0800277e7e80}')
-
-    def __init__(self, name):
-        ''' Constructor '''
-        # Supported interfaces
-        interfaces = [ITest.IID_ITest(), IConfig.IID_IConfig()]
         
-        super(Test2, self).__init__(name, interfaces)
-        self._config = {}
-        
-    # ITest methods    
-    def test_me(self):
-        Trace().debug('%s: Test me!' % self)
-        
-    # IConfig methods
-    def Configure(self, config):
-        ''' Configure component '''
-        self._config = config
-        Trace().debug('%s: Loaded config - %s' % (self.name, self._config))
-        
-
 #--------------------------------------------------------------------
 # COMPONENT REGISTRATION METHODS
 #--------------------------------------------------------------------

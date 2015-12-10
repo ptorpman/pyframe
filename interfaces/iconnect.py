@@ -19,20 +19,18 @@
 #  Author: Peter R. Torpman (peter at torpman dot se)
 #
 #------------------------------------------------------------------------------
-import abc
+from iunknown import IUnknown 
 from uuid import UUID
 
-from interfaces.iunknown import IUnknown
-from interfaces.iid      import IID
+from abc import ABCMeta, abstractmethod
+from interfaces.iid import IID
 
-class ITest(IUnknown):
-    __metaclass__ = abc.ABCMeta
 
-    name = 'ITest'
-    
-    @classmethod
-    def IID_ITest(cls):
-        return IID('ITest', UUID('{10000000-0000-0000-C000-000000000046}'))
+class IConnect(IUnknown):
+    ''' Interface implemented by the all components that are connectable to others '''
+    @staticmethod
+    def IID_IConnect():
+        return IID('IConnect', UUID('{8cf231c8-9f0f-11e5-a012-0800274bfca2}'))
     
     @staticmethod
     def version(): return '1.0'
@@ -40,5 +38,7 @@ class ITest(IUnknown):
     def __init__(self, parent):
         self._parent = parent
 
-    @abc.abstractmethod
-    def test_me(self, args): pass
+    @abstractmethod
+    def Connect(self, instance, interface, arguments): 
+        ''' Configure component. '''
+        pass
