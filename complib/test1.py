@@ -35,9 +35,11 @@ from interfaces.iconfig       import IConfig
 from interfaces.iconnect      import IConnect
 from system.trace             import Trace
 from complib.itest            import ITest
+from interfaces.ischeduler    import ISchedulerClient, ISchedulerServer
+from system.scheduler         import Scheduler
 
 
-class Test1(ComponentBase, IConfig, IConnect):
+class Test1(ComponentBase, IConfig, IConnect, ISchedulerClient):
     '''  
     Component Example
     This component implements some basic interfaces to make it
@@ -52,16 +54,23 @@ class Test1(ComponentBase, IConfig, IConnect):
     def __init__(self, name):
         ''' Constructor '''
         # Supported interfaces
-        interfaces = [IConfig.IID_IConfig(), IConnect.IID_IConnect()]
+        interfaces = [ IConfig.IID_IConfig(),
+                       IConnect.IID_IConnect(),
+                       ISchedulerClient.IID_ISchedulerClient() ]
         super(Test1, self).__init__(name, interfaces)
         self._config = {}
         self._connections = []
+        self._scheduler = None
         
     # IConfig methods
     def Configure(self, config):
         ''' Configure component '''
         self._config = config
         Trace().logger().debug('%s: Loaded config - %s' % (self.name, self._config))
+
+        self._scheduler = Scheduler().QueryInterface(ISchedulerServer.IID_ISchedulerServer())
+        self._scheduler.AddScheduledComponent(self)
+        
         
     # IConnect methods
     def Connect(self, instance, interface, args):
@@ -77,6 +86,10 @@ class Test1(ComponentBase, IConfig, IConnect):
         # Execute interface method implemented by other instance
         iface.test_me(args)
 
+    # ISchedulerClient methods
+    def Execute(self, slice):
+        print "%s: Executing slice... %d " % (self.name, slice)
+        
         
 #--------------------------------------------------------------------
 # CLASS OBJECT (FACTORY)
@@ -111,6 +124,7 @@ class Test1Factory(ComponentBase, IClassFactory):
     def LockServer(self, block): 
         pass
 
+    
 
 #--------------------------------------------------------------------
 # COMPONENT REGISTRATION METHODS

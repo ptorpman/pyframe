@@ -30,6 +30,7 @@ from system.registrar         import Registrar
 from interfaces.iclassfactory import IClassFactory
 from interfaces.iconfig       import IConfig
 from system.trace             import Trace
+from system.scheduler         import Scheduler
 
 class CommandHandler(object):
     ''' The singleton that handles the global commands of PyFrame '''
@@ -47,6 +48,8 @@ class CommandHandler(object):
             cls._commands['load']    = cls._instance.load_cmd
             cls._commands['config']  = cls._instance.config_cmd
             cls._commands['connect'] = cls._instance.connect_cmd
+            cls._commands['start']   = cls._instance.start_cmd
+            cls._commands['stop']    = cls._instance.stop_cmd
 
             return cls._instance
 
@@ -196,5 +199,19 @@ class CommandHandler(object):
                         self.connect_cmd(args, False)
                         
 
+    def start_cmd(self, argv, show_help = False):
+        ''' Command for starting the scheduler '''
 
+        if show_help:
+            raise CliArgException('Usage: start ')
 
+        Scheduler().Start()
+
+    def stop_cmd(self, argv, show_help = False):
+        ''' Command for stopping the scheduler '''
+
+        if show_help:
+            raise CliArgException('Usage: stop ')
+
+        Scheduler().Stop()
+        

@@ -142,4 +142,4 @@ class Registrar(object):
 
     def RegisterInterface(self, iface_name, iface_id, comp_name):
         ''' Register interface for a component '''
-        print 'IID: %s %s NAME: %s' % (iface_name, iface_id, comp_name)
+        Trace().logger().debug('IID: %s %s NAME: %s' % (iface_name, iface_id, comp_name))

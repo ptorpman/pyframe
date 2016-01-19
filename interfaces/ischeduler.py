@@ -21,6 +21,7 @@
 #------------------------------------------------------------------------------
 from iunknown import IUnknown 
 from uuid import UUID
+from interfaces.iid    import IID
 
 from abc import ABCMeta, abstractmethod
 
@@ -28,7 +29,9 @@ from abc import ABCMeta, abstractmethod
 class ISchedulerServer(IUnknown):
     ''' Interface implemented by the Scheduler component '''
     @staticmethod
-    def IID_IClassFactory(): return UUID('{de04984d-d23c-448e-b1e8-b799067abd44}')
+    def IID_ISchedulerServer():
+        return IID('ISchedulerServer', UUID('{de04984d-d23c-448e-b1e8-b799067abd44}'))
+    
     @staticmethod
     def version(): return '1.0'
 
@@ -49,7 +52,9 @@ class ISchedulerServer(IUnknown):
 class ISchedulerClient(IUnknown):
     ''' Interface implemented by a component that wants scheduling '''
     @staticmethod
-    def IID_IClassFactory(): return UUID('{ca3bef4f-19cf-4c32-ae01-0b5f71ff1d38}')
+    def IID_ISchedulerClient():
+        return IID('ISchedulerClient', UUID('{ca3bef4f-19cf-4c32-ae01-0b5f71ff1d38}'))
+    
     @staticmethod
     def version(): return '1.0'
 
